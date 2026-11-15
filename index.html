@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kombin Avcısı</title>
+<style>
+  :root{
+    --bg:#faf7f2; --card:#ffffff; --ink:#1d1a17; --muted:#7a716a; --line:#ece6de;
+    --accent:#b5543a; --accent-soft:#f6e6df; --ok:#2f7d5b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45}
+  header{padding:20px 18px 8px;max-width:760px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+  h1{font-family:Georgia,"Times New Roman",serif;font-weight:600;font-size:26px;margin:0;letter-spacing:-.5px}
+  h1 span{color:var(--accent)}
+  .gear{background:none;border:1px solid var(--line);border-radius:999px;padding:8px 12px;font-size:14px;cursor:pointer}
+  nav{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+  nav .in{max-width:760px;margin:0 auto;display:flex;gap:4px;padding:8px 12px;overflow-x:auto}
+  nav button{flex:1;white-space:nowrap;border:none;background:none;padding:10px 12px;border-radius:999px;font-size:15px;color:var(--muted);cursor:pointer}
+  nav button.on{background:var(--ink);color:#fff}
+  main{max-width:760px;margin:0 auto;padding:16px 14px 80px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  label{font-size:13px;color:var(--muted);display:block;margin:10px 0 4px}
+  input,select,textarea{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+  textarea{min-height:90px}
+  .btn{border:none;background:var(--accent);color:#fff;font:inherit;font-weight:600;padding:12px 16px;border-radius:12px;cursor:pointer}
+  .btn.ghost{background:var(--accent-soft);color:var(--accent)}
+  .btn.dark{background:var(--ink)}
+  .btn:disabled{opacity:.5;cursor:wait}
+  .drop{border:2px dashed var(--line);border-radius:16px;padding:26px;text-align:center;cursor:pointer;color:var(--muted)}
+  .drop img{max-width:100%;max-height:340px;border-radius:12px;display:block;margin:0 auto}
+  .tag{display:inline-block;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;margin:0 4px 4px 0}
+  .swatches{display:flex;gap:6px;margin:8px 0}
+  .sw{width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.1)}
+  .outfit h3{font-family:Georgia,serif;margin:0 0 4px;font-size:19px}
+  .muted{color:var(--muted);font-size:14px}
+  .item{border-top:1px solid var(--line);padding:10px 0}
+  .item b{font-size:15px}
+  .links{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .links a{font-size:12.5px;text-decoration:none;padding:6px 10px;border-radius:8px;border:1px solid var(--line);color:var(--ink);background:#fff}
+  .links a.dupe{border-color:#f0c9b0;background:#fff6f0}
+  .hint{font-size:13px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .err{color:#a3261b;font-size:14px;margin-top:8px}
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:s 0.8s linear infinite;vertical-align:-3px;margin-right:6px}
+  @keyframes s{to{transform:rotate(360deg)}}
+  .thumb{width:72px;height:90px;object-fit:cover;border-radius:10px;flex:none}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
+  .modal.on{display:flex}
+  .modal .card{max-width:440px;width:100%}
+  .section-title{font-family:Georgia,serif;font-size:20px;margin:18px 0 10px}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Kombin <span>Avcısı</span></h1>
+  <button class="gear" onclick="openSettings()">⚙️ Ayarlar</button>
+</header>
+
+<nav><div class="in">
+  <button class="on" data-tab="bul">📸 Görselden Bul</button>
+  <button data-tab="oneri">✨ Öneriler</button>
+  <button data-tab="benim">👗 Kombinlerim</button>
+</div></nav>
+
+<main>
+  <!-- GÖRSELDEN BUL -->
+  <section id="tab-bul">
+    <div class="card">
+      <div class="drop" id="drop" onclick="document.getElementById('file').click()">
+        <div id="dropText">📷 Bir kombin fotoğrafı yükle<br><span class="muted">Pinterest ekran görüntüsü, kendi fotoğrafın…</span></div>
+        <img id="preview" class="hidden" alt="">
+      </div>
+      <input type="file" id="file" accept="image/*" class="hidden">
+      <div class="row" style="margin-top:12px">
+        <select id="gender" style="flex:1">
+          <option value="kadin">Kadın</option>
+          <option value="erkek">Erkek</option>
+        </select>
+        <button class="btn" id="analyzeBtn" onclick="analyzeUpload()" style="flex:2">Kombini Çıkar</button>
+      </div>
+      <div id="bulErr" class="err"></div>
+    </div>
+    <div id="bulResult"></div>
+  </section>
+
+  <!-- ÖNERİLER -->
+  <section id="tab-oneri" class="hidden">
+    <div class="card">
+      <div class="row">
+        <select id="oStyle" style="flex:1">
+          <option value="">Tarz: Fark etmez</option>
+          <option>Old money</option><option>Minimal</option><option>Streetwear</option>
+          <option>Clean girl</option><option>Boho</option><option>Y2K</option>
+          <option>Office chic</option><option>Coquette</option><option>Gorpcore</option>
+        </select>
+        <select id="oOccasion" style="flex:1">
+          <option value="">Ortam: Fark etmez</option>
+          <option>Günlük</option><option>İş / Ofis</option><option>Akşam yemeği</option>
+          <option>Kahve buluşması</option><option>Düğün / Davet</option><option>Seyahat</option>
+        </select>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <select id="oGender" style="flex:1"><option value="kadin">Kadın</option><option value="erkek">Erkek</option></select>
+        <button class="btn" id="suggestBtn" onclick="aiSuggest()" style="flex:2">✨ Bana Yeni Kombin Öner</button>
+      </div>
+      <div id="oErr" class="err"></div>
+    </div>
+    <div id="aiSuggestions"></div>
+    <div class="section-title">Editör Seçkisi</div>
+    <div id="curated"></div>
+  </section>
+
+  <!-- KOMBİNLERİM -->
+  <section id="tab-benim" class="hidden">
+    <div class="card">
+      <h3 style="margin:0 0 4px;font-family:Georgia,serif">Yeni kombin ekle</h3>
+      <label>Kombin adı</label>
+      <input id="mName" placeholder="ör. Pazar kahvesi">
+      <label>Tarz (boş bırakırsan yapay zekâ belirler)</label>
+      <input id="mStyle" placeholder="ör. Minimal">
+      <label>Parçalar (her satıra bir tane)</label>
+      <textarea id="mParts" placeholder="Krem triko kazak&#10;Düz paça açık mavi jean&#10;Kahverengi süet loafer&#10;Altın halka küpe"></textarea>
+      <label>Fotoğraf (isteğe bağlı)</label>
+      <input type="file" id="mPhoto" accept="image/*">
+      <div class="row" style="margin-top:12px">
+        <button class="btn dark" onclick="saveMine()">Kaydet</button>
+      </div>
+    </div>
+    <div id="mineList"></div>
+  </section>
+</main>
+
+<!-- AYARLAR -->
+<div class="modal" id="settings">
+  <div class="card">
+    <h3 style="margin:0 0 6px;font-family:Georgia,serif">Ayarlar</h3>
+    <p class="muted" style="margin:0 0 8px">Görsel analizi ve öneriler için Claude API anahtarı gerekiyor. Anahtar <b>yalnızca bu tarayıcıda</b> saklanır, GitHub'a gitmez.</p>
+    <label>Anthropic API anahtarı</label>
+    <input id="apiKey" type="password" placeholder="sk-ant-...">
+    <label>Model</label>
+    <input id="model" placeholder="claude-sonnet-5-5">
+    <div class="row" style="margin-top:14px">
+      <button class="btn" onclick="saveSettings()">Kaydet</button>
+      <button class="btn ghost" onclick="closeSettings()">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------- Ayarlar ---------------- */
+const LS = {
+  get:(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},
+  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){alert('Tarayıcı hafızası dolu. Fotoğraflı bazı kombinleri sil.');return false}}
+};
+const DEFAULT_MODEL = 'claude-sonnet-5-5';
+function openSettings(){
+  document.getElementById('apiKey').value = LS.get('apiKey','');
+  document.getElementById('model').value = LS.get('model',DEFAULT_MODEL);
+  document.getElementById('settings').classList.add('on');
+}
+function closeSettings(){document.getElementById('settings').classList.remove('on')}
+function saveSettings(){
+  LS.set('apiKey',document.getElementById('apiKey').value.trim());
+  LS.set('model',document.getElementById('model').value.trim()||DEFAULT_MODEL);
+  closeSettings();
+}
+
+/* ---------------- Sekmeler ---------------- */
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+  ['bul','oneri','benim'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('hidden',t!==b.dataset.tab));
+});
+
+/* ---------------- Mağaza linkleri ---------------- */
+function storeLinks(term, gender){
+  const q = encodeURIComponent(term);
+  const zaraSection = gender==='erkek' ? 'MAN' : 'WOMAN';
+  const g = gender==='erkek' ? 'erkek' : 'kadın';
+  return [
+    {name:'Zara', url:`https://www.zara.com/tr/tr/search?searchTerm=${q}&section=${zaraSection}`},
+    {name:'Bershka', url:`https://www.google.com/search?q=${encodeURIComponent('site:bershka.com/tr '+term)}`},
+    {name:'Pull&Bear', url:`https://www.google.com/search?q=${encodeURIComponent('site:pullandbear.com/tr '+term)}`},
+    {name:'Trendyol (muadil)', url:`https://www.trendyol.com/sr?q=${encodeURIComponent(g+' '+term)}`, dupe:true},
+  ];
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+/* ---------------- Kombin kartı ---------------- */
+function outfitCard(o, gender, extraHtml=''){
+  const colors = (o.renkler||[]).map(c=>`<span class="sw" style="background:${esc(c)}"></span>`).join('');
+  const tags = [o.tarz, ...(o.etiketler||[])].filter(Boolean).map(t=>`<span class="tag">${esc(t)}</span>`).join('');
+  const items = (o.parcalar||[]).map(p=>{
+    const term = p.arama || p.ad;
+    const links = storeLinks(term, gender).map(l=>`<a href="${l.url}" target="_blank" rel="noopener" class="${l.dupe?'dupe':''}">${l.name} ↗</a>`).join('');
+    return `<div class="item"><b>${esc(p.kategori?p.kategori+': ':'')}${esc(p.ad)}</b>${p.not?`<div class="muted">${esc(p.not)}</div>`:''}<div class="links">${links}</div></div>`;
+  }).join('');
+  return `<div class="card outfit">
+    <h3>${esc(o.ad||'Kombin')}</h3>
+    <div>${tags}</div>
+    ${colors?`<div class="swatches">${colors}</div>`:''}
+    ${o.aciklama?`<p class="muted" style="margin:6px 0 4px">${esc(o.aciklama)}</p>`:''}
+    ${items}
+    ${extraHtml}
+  </div>`;
+}
+
+/* ---------------- Claude API ---------------- */
+async function callClaude(content, maxTokens=3000){
+  const key = LS.get('apiKey','');
+  if(!key){openSettings();throw new Error('Önce Ayarlar\'dan API anahtarını gir.')}
+  const res = await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'content-type':'application/json',
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({model:LS.get('model',DEFAULT_MODEL),max_tokens:maxTokens,messages:[{role:'user',content}]})
+  });
+  const data = await res.json();
+  if(!res.ok) throw new Error(data?.error?.message || ('API hatası: '+res.status));
+  const text = data.content.map(c=>c.text||'').join('');
+  const s = text.indexOf('{'), e = text.lastIndexOf('}');
+  if(s<0||e<0) throw new Error('Yanıt okunamadı, tekrar dene.');
+  return JSON.parse(text.slice(s,e+1));
+}
+
+const JSON_SPEC = `Kombin nesnesi şu yapıda olmalı:
+{"ad":"kısa yaratıcı isim","tarz":"ana tarz (ör. Old money, Minimal, Streetwear)","etiketler":["mevsim","ortam"],"aciklama":"1-2 cümle neden işe yaradığı","renkler":["#hex","#hex","#hex"],
+ "parcalar":[{"kategori":"Üst/Alt/Dış giyim/Ayakkabı/Çanta/Takı/Aksesuar","ad":"parçanın Türkçe tarifi","arama":"Zara/Bershka/Pull&Bear sitesinde aranacak 2-4 kelimelik Türkçe arama terimi (ör. 'krem triko kazak')","not":"isteğe bağlı kısa ipucu"}]}
+Arama terimleri Türkiye'deki mağaza sitelerinde sonuç verecek, sade ve yaygın Türkçe ürün adları olsun. Marka adı yazma.`;
+
+/* ---------------- Görsel yardımcıları ---------------- */
+function resizeImage(file, max=1024, quality=0.85){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = ()=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const k = Math.min(1, max/Math.max(img.width,img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width*k); c.height = Math.round(img.height*k);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        resolve(c.toDataURL('image/jpeg',quality));
+      };
+      img.onerror = reject; img.src = r.result;
+    };
+    r.onerror = reject; r.readAsDataURL(file);
+  });
+}
+const imgBlock = dataUrl => ({type:'image',source:{type:'base64',media_type:'image/jpeg',data:dataUrl.split(',')[1]}});
+
+function busy(btn, on, label){
+  btn.disabled = on;
+  if(on){btn.dataset.l = btn.innerHTML; btn.innerHTML = `<span class="spinner"></span>${label||'Hazırlanıyor…'}`}
+  else btn.innerHTML = btn.dataset.l;
+}
+
+/* ---------------- 1) Görselden Bul ---------------- */
+let uploadData = null;
+document.getElementById('file').onchange = async e=>{
+  const f = e.target.files[0]; if(!f) return;
+  uploadData = await resizeImage(f);
+  const p = document.getElementById('preview');
+  p.src = uploadData; p.classList.remove('hidden');
+  document.getElementById('dropText').classList.add('hidden');
+};
+
+async function analyzeImage(dataUrl, gender){
+  const prompt = `Sen Türkiye'deki kullanıcılar için çalışan bir moda stilistisin. Fotoğraftaki kombini analiz et (${gender==='erkek'?'erkek':'kadın'} giyim).
+1) Fotoğraftaki her parçayı (kıyafet, ayakkabı, çanta, takı, aksesuar) ayrı ayrı tespit et.
+2) Tarzı belirle ve kısaca nedenini söyle.
+3) Aynı tarzda 3 ALTERNATİF kombin öner: biri daha uygun bütçeli, biri farklı bir ortam için, biri trend bir yorum.
+Sadece geçerli JSON döndür, başka metin yazma:
+{"tarz":"...","tarz_aciklama":"...","fotograftaki":KOMBIN,"alternatifler":[KOMBIN,KOMBIN,KOMBIN]}
+${JSON_SPEC}`;
+  return callClaude([imgBlock(dataUrl),{type:'text',text:prompt}], 4000);
+}
+
+function renderAnalysis(r, gender){
+  return `<div class="card" style="background:var(--ink);color:#fff;border:none">
+      <div class="muted" style="color:#cfc6bd">Tespit edilen tarz</div>
+      <div style="font-family:Georgia,serif;font-size:24px">${esc(r.tarz)}</div>
+      <div style="font-size:14px;color:#e8e0d8;margin-top:4px">${esc(r.tarz_aciklama)}</div>
+    </div>
+    <div class="section-title">Fotoğraftaki kombin</div>
+    ${outfitCard(r.fotograftaki, gender)}
+    <div class="section-title">Alternatif kombinler</div>
+    ${(r.alternatifler||[]).map(o=>outfitCard(o, gender)).join('')}`;
+}
+
+async function analyzeUpload(){
+  const err = document.getElementById('bulErr'); err.textContent='';
+  if(!uploadData){err.textContent='Önce bir fotoğraf yükle.';return}
+  const btn = document.getElementById('analyzeBtn'); busy(btn,true,'Analiz ediliyor…');
+  const gender = document.getElementById('gender').value;
+  try{
+    const r = await analyzeImage(uploadData, gender);
+    document.getElementById('bulResult').innerHTML = renderAnalysis(r, gender);
+  }catch(e){err.textContent = e.message}
+  busy(btn,false);
+}
+
+/* ---------------- 2) Öneriler ---------------- */
+async function aiSuggest(){
+  const err = document.getElementById('oErr'); err.textContent='';
+  const btn = document.getElementById('suggestBtn'); busy(btn,true,'Öneriler hazırlanıyor…');
+  const style = document.getElementById('oStyle').value;
+  const occ = document.getElementById('oOccasion').value;
+  const gender = document.getElementById('oGender').value;
+  const month = new Date().toLocaleDateString('tr-TR',{month:'long'});
+  const prompt = `Sen global Pinterest ve sokak modası trendlerini takip eden bir stilistsin. Türkiye'de ${month} ayındayız.
+${gender==='erkek'?'Erkek':'Kadın'} giyim için 3 farklı, şu an trend olan, giyilebilir kombin öner.${style?' Tarz: '+style+'.':''}${occ?' Ortam: '+occ+'.':''}
+Her kombine bir takı/aksesuar mutlaka ekle. Sadece geçerli JSON döndür: {"kombinler":[KOMBIN,KOMBIN,KOMBIN]}
+${JSON_SPEC}`;
+  try{
+    const r = await callClaude([{type:'text',text:prompt}], 3500);
+    document.getElementById('aiSuggestions').innerHTML =
+      `<div class="section-title">Senin için önerilenler</div>` + r.kombinler.map(o=>outfitCard(o,gender,
+        `<div class="row" style="margin-top:10px"><button class="btn ghost" onclick='saveFromSuggestion(${JSON.stringify(JSON.stringify(o)).replace(/'/g,"&#39;")})'>♡ Kombinlerime kaydet</button></div>`)).join('');
+  }catch(e){err.textContent = e.message}
+  busy(btn,false);
+}
+
+const CURATED = [
+  {ad:'Mocha Katmanlar',tarz:'Old money',etiketler:['Sonbahar','Günlük'],renkler:['#6b4f3f','#d9c8b4','#2b2421'],
+   aciklama:'Kahve tonlarının katmanlı kullanımı; pahalı görünen ama sade bir kombin.',
+   parcalar:[{kategori:'Dış giyim',ad:'Kahverengi yün karışımlı uzun kaban',arama:'kahverengi uzun kaban'},
+     {kategori:'Üst',ad:'Bej balıkçı yaka triko',arama:'bej balıkçı yaka triko'},
+     {kategori:'Alt',ad:'Koyu kahve geniş paça pantolon',arama:'kahverengi wide leg pantolon'},
+     {kategori:'Ayakkabı',ad:'Kahverengi süet loafer',arama:'süet loafer'},
+     {kategori:'Takı',ad:'Altın kalın halka küpe',arama:'altın halka küpe'}]},
+  {ad:'Bordo Detay',tarz:'Minimal',etiketler:['Sonbahar','Ofis'],renkler:['#5c1a26','#1f1f1f','#efe9e1'],
+   aciklama:'Nötr bir zemine tek bir bordo parça eklemek kombini hemen güncel gösterir.',
+   parcalar:[{kategori:'Üst',ad:'Bordo ince örgü kazak',arama:'bordo triko kazak'},
+     {kategori:'Alt',ad:'Siyah kumaş düz paça pantolon',arama:'siyah kumaş pantolon'},
+     {kategori:'Dış giyim',ad:'Siyah oversize blazer',arama:'oversize blazer ceket'},
+     {kategori:'Çanta',ad:'Bordo deri omuz çantası',arama:'bordo omuz çantası'},
+     {kategori:'Takı',ad:'Gümüş zincir kolye',arama:'gümüş zincir kolye'}]},
+  {ad:'Süet ve Denim',tarz:'Boho',etiketler:['Sonbahar','Kahve buluşması'],renkler:['#a47551','#5b7aa3','#f2ece2'],
+   aciklama:'Süet ceket ve açık denim; rahat ama özenli bir hafta sonu görünümü.',
+   parcalar:[{kategori:'Dış giyim',ad:'Taba süet ceket',arama:'süet ceket'},
+     {kategori:'Üst',ad:'Krem dantel detaylı bluz',arama:'krem dantel bluz'},
+     {kategori:'Alt',ad:'Açık mavi flare jean',arama:'flare jean'},
+     {kategori:'Ayakkabı',ad:'Kahverengi kovboy çizme',arama:'kovboy çizme'},
+     {kategori:'Takı',ad:'Katmanlı altın kolye',arama:'katmanlı kolye'}]},
+  {ad:'Gri Melanj Rahatlık',tarz:'Streetwear',etiketler:['Günlük','Kış'],renkler:['#9a9a9a','#1c1c1c','#ffffff'],
+   aciklama:'Tonal gri eşofman takımı ve şişme yelek; rahatlıktan ödün vermeden şehir stili.',
+   parcalar:[{kategori:'Üst',ad:'Gri oversize kapüşonlu sweatshirt',arama:'gri oversize sweatshirt'},
+     {kategori:'Alt',ad:'Gri geniş paça eşofman altı',arama:'gri wide leg eşofman'},
+     {kategori:'Dış giyim',ad:'Siyah şişme yelek',arama:'şişme yelek'},
+     {kategori:'Ayakkabı',ad:'Retro beyaz sneaker',arama:'retro sneaker'},
+     {kategori:'Aksesuar',ad:'Siyah beyzbol şapkası',arama:'beyzbol şapka'}]},
+  {ad:'Ekose Ofis',tarz:'Office chic',etiketler:['Ofis','Sonbahar'],renkler:['#6d6a5e','#f4efe6','#2e2a26'],
+   aciklama:'Ekose blazer tek başına kombini taşır, gerisini sade tut.',
+   parcalar:[{kategori:'Dış giyim',ad:'Ekose oversize blazer',arama:'ekose blazer'},
+     {kategori:'Üst',ad:'Beyaz poplin gömlek',arama:'beyaz poplin gömlek'},
+     {kategori:'Alt',ad:'Gri pileli kumaş pantolon',arama:'gri pileli pantolon'},
+     {kategori:'Ayakkabı',ad:'Siyah sivri burun babet',arama:'sivri burun babet'},
+     {kategori:'Takı',ad:'İnce altın bileklik',arama:'altın bileklik'}]},
+  {ad:'Fiyonklu Romantik',tarz:'Coquette',etiketler:['Akşam yemeği'],renkler:['#f3d6d9','#ffffff','#1b1b1b'],
+   aciklama:'Fiyonk ve saten dokular; feminen ama abartısız.',
+   parcalar:[{kategori:'Üst',ad:'Pudra fiyonk detaylı hırka',arama:'fiyonklu hırka'},
+     {kategori:'Alt',ad:'Saten midi etek',arama:'saten midi etek'},
+     {kategori:'Ayakkabı',ad:'Siyah Mary Jane ayakkabı',arama:'mary jane ayakkabı'},
+     {kategori:'Aksesuar',ad:'Saten saç fiyonku',arama:'saç fiyonku'},
+     {kategori:'Takı',ad:'İnci küpe',arama:'inci küpe'}]},
+];
+document.getElementById('curated').innerHTML = CURATED.map(o=>outfitCard(o,'kadin')).join('');
+
+/* ---------------- 3) Kombinlerim ---------------- */
+function getMine(){return LS.get('mine',[])}
+function setMine(v){return LS.set('mine',v)}
+
+async function saveMine(){
+  const name = document.getElementById('mName').value.trim();
+  const parts = document.getElementById('mParts').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!name && !parts.length && !document.getElementById('mPhoto').files[0]){alert('En azından isim, parça ya da fotoğraf ekle.');return}
+  const f = document.getElementById('mPhoto').files[0];
+  const photo = f ? await resizeImage(f, 640, 0.75) : null;
+  const o = {id:Date.now(), ad:name||'Kombinim', tarz:document.getElementById('mStyle').value.trim(),
+    parcalar:parts.map(p=>({ad:p,arama:p})), photo, gender:document.getElementById('gender').value};
+  const list = getMine(); list.unshift(o);
+  if(setMine(list)){
+    ['mName','mStyle','mParts','mPhoto'].forEach(id=>document.getElementById(id).value='');
+    renderMine();
+  }
+}
+function saveFromSuggestion(json){
+  const o = JSON.parse(json); o.id = Date.now(); o.gender = document.getElementById('oGender').value;
+  const list = getMine(); list.unshift(o); setMine(list); renderMine();
+  alert('Kombinlerime kaydedildi ♡');
+}
+function delMine(id){
+  if(!confirm('Bu kombin silinsin mi?')) return;
+  setMine(getMine().filter(o=>o.id!==id)); renderMine();
+}
+async function altMine(id, btn){
+  const o = getMine().find(x=>x.id===id); if(!o) return;
+  busy(btn,true,'Alternatifler hazırlanıyor…');
+  const out = document.getElementById('alt-'+id);
+  try{
+    let r;
+    if(o.photo){
+      r = await analyzeImage(o.photo, o.gender);
+    }else{
+      const prompt = `Sen Türkiye'deki kullanıcılar için çalışan bir moda stilistisin. Kullanıcının kombini (${o.gender==='erkek'?'erkek':'kadın'}):
+İsim: ${o.ad}${o.tarz?'\nKullanıcının belirttiği tarz: '+o.tarz:''}
+Parçalar: ${(o.parcalar||[]).map(p=>p.ad).join(', ')}
+1) Tarzı belirle. 2) Kombini düzenli hâle getir (fotograftaki alanına yaz). 3) Aynı tarzda 3 ALTERNATİF kombin öner: biri daha uygun bütçeli, biri farklı ortam için, biri trend yorum.
+Sadece geçerli JSON döndür: {"tarz":"...","tarz_aciklama":"...","fotograftaki":KOMBIN,"alternatifler":[KOMBIN,KOMBIN,KOMBIN]}
+${JSON_SPEC}`;
+      r = await callClaude([{type:'text',text:prompt}], 4000);
+    }
+    out.innerHTML = renderAnalysis(r, o.gender);
+  }catch(e){out.innerHTML = `<div class="err">${esc(e.message)}</div>`}
+  busy(btn,false);
+}
+function renderMine(){
+  const list = getMine();
+  document.getElementById('mineList').innerHTML = list.length ? list.map(o=>{
+    const photo = o.photo ? `<img class="thumb" src="${o.photo}" alt="">` : '';
+    const extra = `<div class="row" style="margin-top:10px">
+        <button class="btn ghost" onclick="altMine(${o.id}, this)">🔄 Tarzını bul & alternatif üret</button>
+        <button class="btn ghost" onclick="delMine(${o.id})">Sil</button>
+      </div><div id="alt-${o.id}" style="margin-top:10px"></div>`;
+    return `<div style="display:flex;gap:10px;align-items:flex-start">${photo}<div style="flex:1;min-width:0">${outfitCard(o, o.gender, extra)}</div></div>`;
+  }).join('') : `<div class="hint">Henüz kombin yok. Yukarıdan ekleyebilir ya da Öneriler'den kaydedebilirsin.</div>`;
+}
+renderMine();
+</script>
+</body>
+</html>
